@@ -23,16 +23,27 @@ const AppProvider = ({ children }) => {
   const [accounts, setAccounts] = useState(() => parseStored(ACCOUNTS_STORAGE_KEY, []));
   const [recentlyViewed, setRecentlyViewed] = useState([]);
 
+  // Persist cart to localStorage
   useEffect(() => {
-    window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    }
   }, [cartItems]);
 
+  // Persist user to localStorage
   useEffect(() => {
-    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+    }
   }, [user]);
 
+  // Persist accounts to localStorage
   useEffect(() => {
-    window.localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+    if (typeof window !== 'undefined') {
+      // Ensure we always have an array of accounts
+      const accountsToSave = Array.isArray(accounts) ? accounts : [];
+      window.localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accountsToSave));
+    }
   }, [accounts]);
 
   const addToCart = product => {
@@ -60,7 +71,13 @@ const AppProvider = ({ children }) => {
   };
 
   const registerAccount = ({ name, email, password }) => {
+    if (!name || !email || !password) {
+      return { success: false, message: 'All fields are required.' };
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
+    
+    // Check if account already exists
     const existing = accounts.some(account => account.email === normalizedEmail);
     if (existing) {
       return { success: false, message: 'An account with this email already exists.' };
@@ -73,15 +90,33 @@ const AppProvider = ({ children }) => {
       password,
     };
 
-    setAccounts(prev => [...prev, newAccount]);
+    // Add new account to the array
+    setAccounts(prev => {
+      const updated = Array.isArray(prev) ? [...prev, newAccount] : [newAccount];
+      // Immediately sync to localStorage to ensure persistence
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(updated));
+      }
+      return updated;
+    });
+
+    // Log in the new user
     setUser({ isLoggedIn: true, name: newAccount.name, email: newAccount.email });
     return { success: true };
   };
 
   const login = ({ email, password }) => {
+    if (!email || !password) {
+      return { success: false, message: 'Email and password are required.' };
+    }
+
     const normalizedEmail = email.trim().toLowerCase();
-    const account = accounts.find(account => account.email === normalizedEmail);
-    if (!account || account.password !== password) {
+    
+    // Make sure we have a valid accounts array
+    const accountsList = Array.isArray(accounts) ? accounts : [];
+    const account = accountsList.find(acc => acc.email === normalizedEmail && acc.password === password);
+    
+    if (!account) {
       return { success: false, message: 'Invalid email or password.' };
     }
 
