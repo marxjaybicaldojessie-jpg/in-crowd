@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>In-Crowd Brands</title>
+    <script type="module" crossorigin src="/in-crowd/assets/index--IHd4BGo.js"></script>
+    <link rel="stylesheet" crossorigin href="/in-crowd/assets/index-CN1z5xND.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      // Handle GitHub Pages 404 redirects for SPA routing
+      (function() {
+        var redirect = sessionStorage.redirect;
+        delete sessionStorage.redirect;
+        if (redirect && redirect !== location.pathname) {
+          history.replaceState(null, null, redirect);
+        }
+      })();
+    </script>
+  </body>
+</html>
